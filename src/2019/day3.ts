@@ -1,207 +1,112 @@
 import * as fs from 'fs';
 import * as path from "path";
 
-function part1(input: string): number {
-    let grid: Set<string> = new Set();
-    let intersections: Array<string> = [];
-    let inputSplit = input.split("\n");
-    let wire1 = inputSplit[0].split(",");
-    let wire2 = inputSplit[1].split(",");
+type NumberPair = {x: number, y: number};
+type WireOperation = {op: string, count: number};
 
-    // simulation
-    let pointerX = 0;
-    let pointerY = 0;
+function stringToWireOp(value: String): WireOperation {
+    return {op: value[0], count: parseInt(value.substring(1))};
+}
 
-    function up() {
-        pointerY++;
+class Grid<T> {
+    private grid: {};
+    private valueGenerator: (numberPair: NumberPair, stepsPair: NumberPair) => NumberPair;
+    private pointerX: number;
+    private pointerY: number;
+    private steps: number;
+    private state: boolean;
+    minDistance: number;
+
+    constructor(valueGenerator: (numberPair: NumberPair, stepsPair: NumberPair) => NumberPair) {
+        this.grid = {};
+        this.valueGenerator = valueGenerator;
+        this.minDistance = 0;
+        this.pointerX = 0;
+        this.pointerY = 0;
+        this.steps = 0;
+        this.state = false;
     }
 
-    function down() {
-        pointerY--;
-    }
-
-    function left() {
-        pointerX--;
-    }
-
-    function right() {
-        pointerX++;
-    }
-
-    wire1.forEach((x) => {
-        let op = x[0];
-        let calc = parseInt(x.substring(1));
-
-        let formula;
-
-        if (op === "D") {
-            formula = down;
-        } else if (op === "U") {
-            formula = up;
-        } else if (op === "R") {
-            formula = right;
-        } else if (op === "L") {
-            formula = left;
-        }
-
-        for (let i = 0; i < calc; i++) {
-            formula();
-            grid.add(`${pointerX},${pointerY}`);
-        }
-    });
-
-    pointerX = 0;
-    pointerY = 0;
-
-    wire2.forEach((x) => {
-        let op = x[0];
-        let calc = parseInt(x.substring(1));
-
-        let formula;
-
-        if (op === "D") {
-            formula = down;
-        } else if (op === "U") {
-            formula = up;
-        } else if (op === "R") {
-            formula = right;
-        } else if (op === "L") {
-            formula = left;
-        }
-
-        for (let i = 0; i < calc; i++) {
-            formula();
-            let result = `${pointerX},${pointerY}`;
-            if (grid.has(result)) {
-                grid.delete(result);
-                intersections.push(result);
-            }
-        }
-    });
-
-    let shortestDistance: number = 0;
-    
-    intersections.map((string) => {
-        let split = string.split(",");
-        let x = parseInt(split[0]);
-        let y = parseInt(split[1]);
-        return {x: x, y: y};
-    }).forEach((set) => {
-        let distance = Math.abs(set.x) + Math.abs(set.y);
-
-        if (shortestDistance === 0) {
-            shortestDistance = distance;
+    execute(wires: Array<WireOperation>) {
+        this.pointerX = 0;
+        this.pointerY = 0;
+        this.steps = 0;
+        if(!this.state) {
+            this.executeWithCallback(wires, () => this.grid[`${this.pointerX};${this.pointerY}`] = this.steps);
+            this.state = true;
         } else {
-            shortestDistance = Math.min(shortestDistance, distance);
+            this.executeWithCallback(wires, () => {
+                let result = `${this.pointerX};${this.pointerY}`;
+                if (this.grid[result] !== undefined) {
+                    let numberPair = this.valueGenerator({x: this.pointerX, y: this.pointerY}, {x: this.grid[result], y: this.steps});
+                    let value = Math.abs(numberPair.x) + Math.abs(numberPair.y);
+                    if (this.minDistance === 0) {
+                        this.minDistance = value;
+                    } else {
+                        this.minDistance = Math.min(this.minDistance, value);
+                    }
+                    this.grid[result] = undefined;
+                }
+            });
         }
-    });
-    return shortestDistance;
+    }
+
+    private executeWithCallback(wires: Array<WireOperation>, callback: () => void) {
+        wires.forEach((wireOp) => {
+            this.OPERATION[wireOp.op](wireOp.count, callback);
+        });
+    }
+
+    private OPERATION = {
+        D: (count: number, callback: () => void) => {
+            for (let x = 0; x < count; x++) {
+                this.steps++;
+                this.pointerY--;
+                callback();
+            }
+        },
+        U: (count: number, callback: () => void) => {
+            for (let x = 0; x < count; x++) {
+                this.steps++;
+                this.pointerY++;
+                callback();
+            }
+        },
+        L: (count: number, callback: () => void) => {
+            for (let x = 0; x < count; x++) {
+                this.steps++;
+                this.pointerX--;
+                callback();
+            }
+        },
+        R: (count: number, callback: () => void) => {
+            for (let x = 0; x < count; x++) {
+                this.steps++;
+                this.pointerX++;
+                callback();
+            }
+        },
+    }
+}
+
+function part1(input: string): number {
+    let inputSplit = input.split("\n");
+    let wires1 = inputSplit[0].split(",").map(stringToWireOp);
+    let wires2 = inputSplit[1].split(",").map(stringToWireOp);
+    let grid = new Grid((val, _) => val);
+    grid.execute(wires1);
+    grid.execute(wires2);
+    return grid.minDistance;
 }
 
 function part2(input: string) {
-    let grid = {};
-    let intersections: Array<string> = [];
     let inputSplit = input.split("\n");
-    let wire1 = inputSplit[0].split(",");
-    let wire2 = inputSplit[1].split(",");
-
-    // simulation
-    let pointerX = 0;
-    let pointerY = 0;
-    let steps = 0;
-
-    function up() {
-        pointerY++;
-        steps++;
-    }
-
-    function down() {
-        pointerY--;
-        steps++;
-    }
-
-    function left() {
-        pointerX--;
-        steps++;
-    }
-
-    function right() {
-        pointerX++;
-        steps++;
-    }
-
-    wire1.forEach((x) => {
-        let op = x[0];
-        let calc = parseInt(x.substring(1));
-
-        let formula;
-
-        if (op === "D") {
-            formula = down;
-        } else if (op === "U") {
-            formula = up;
-        } else if (op === "R") {
-            formula = right;
-        } else if (op === "L") {
-            formula = left;
-        }
-
-        for (let i = 0; i < calc; i++) {
-            formula();
-            let result = `${pointerX},${pointerY}`;
-            if (grid[result] === undefined) {
-                grid[result] = steps;
-            }
-        }
-    });
-
-    pointerX = 0;
-    pointerY = 0;
-    steps = 0;
-
-    wire2.forEach((x) => {
-        let op = x[0];
-        let calc = parseInt(x.substring(1));
-
-        let formula;
-
-        if (op === "D") {
-            formula = down;
-        } else if (op === "U") {
-            formula = up;
-        } else if (op === "R") {
-            formula = right;
-        } else if (op === "L") {
-            formula = left;
-        }
-
-        for (let i = 0; i < calc; i++) {
-            formula();
-            let result = `${pointerX},${pointerY}`;
-            if (grid[result] !== undefined) {
-                intersections.push(`${steps},${grid[result]}`);
-                grid[result] = undefined;
-            }
-        }
-    });
-
-    let shortestDistance: number = 0;
-    
-    intersections.map((string) => {
-        let split = string.split(",");
-        let x = parseInt(split[0]);
-        let y = parseInt(split[1]);
-        return {x: x, y: y};
-    }).forEach((set) => {
-        let distance = set.x + set.y;
-
-        if (shortestDistance === 0) {
-            shortestDistance = distance;
-        } else {
-            shortestDistance = Math.min(shortestDistance, distance);
-        }
-    });
-    return shortestDistance;
+    let wires1 = inputSplit[0].split(",").map(stringToWireOp);
+    let wires2 = inputSplit[1].split(",").map(stringToWireOp);
+    let grid = new Grid((_, val) => val);
+    grid.execute(wires1);
+    grid.execute(wires2);
+    return grid.minDistance;
 }
 
 export function solution() {

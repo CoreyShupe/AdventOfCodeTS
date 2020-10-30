@@ -3,12 +3,12 @@ import * as path from "path";
 import {runElfCode} from "./elf_code";
 
 function part1(input: string) {
-    let inputArr = input.split(",").map((string) => parseInt(string));
+    let inputArr = input.split(",").map(parseInt);
     return runElfCode(inputArr, 1).output;
 }
 
 function part2(input: string): number {
-    let inputArr = input.split(",").map((string) => parseInt(string));
+    let inputArr = input.split(",").map(parseInt);
     return runElfCode(inputArr, 5).output;
 }
 

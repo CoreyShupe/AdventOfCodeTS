@@ -19,7 +19,7 @@ function part2(input: string): number {
 }
 
 function runProgram(input: string, noun: number, verb: number): number {
-    let opArr = input.split(",").map((string) => parseInt(string));
+    let opArr = input.split(",").map(parseInt);
     return runElfCode(opArr, 0, (ram) => {
         ram[1] = noun;
         ram[2] = verb;
