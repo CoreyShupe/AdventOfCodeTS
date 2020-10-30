@@ -8,7 +8,7 @@ function stringToWireOp(value: String): WireOperation {
     return {op: value[0], count: parseInt(value.substring(1))};
 }
 
-class Grid<T> {
+class Grid {
     private grid: {};
     private valueGenerator: (numberPair: NumberPair, stepsPair: NumberPair) => NumberPair;
     private pointerX: number;
