@@ -1,9 +1,9 @@
-import * as day1 from "./2019/day1";
-import * as day2 from "./2019/day2";
-import * as day3 from "./2019/day3";
-import * as day4 from "./2019/day4";
+import * as y2019 from "./2019/year";
 
-// console.log(`Day 1: ${day1.solution()}`);
-// console.log(`Day 2: ${day2.solution()}`);
-// console.log(`Day 3: ${day3.solution()}`);
-console.log(`Day 4: ${day4.solution()}`);
+function display2019() {
+    console.log("<===> Year 2019 <===>");
+    y2019.display();
+    console.log("");
+}
+
+display2019();
