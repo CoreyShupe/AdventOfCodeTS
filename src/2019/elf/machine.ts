@@ -65,6 +65,13 @@ export class Machine {
     }
 }
 
+// an abstraction of the machine which outputs ascii characters
+export class AsciiMachine extends Machine {
+    constructor(input: Array<number>, outputAcceptor: (value: string) => void) {
+        super(input, (value: number) => outputAcceptor(String.fromCharCode(value)))
+    }
+}
+
 export class Ram {
     state: State;
     private instructionSet: Array<number>;
