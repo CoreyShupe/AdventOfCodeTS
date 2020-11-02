@@ -1,15 +1,25 @@
 import * as fs from 'fs';
 import * as path from "path";
-import {runElfCode} from "./elf_code";
+import {Machine, State} from "./elf/machine";
 
 function part1(input: string) {
-    let inputArr = input.split(",").map(parseInt);
-    return runElfCode(inputArr, 1).output;
+    let inputArr = input.split(",").map((string) => parseInt(string));
+    const machine = new Machine(inputArr);
+    machine.run();
+    while (machine.ram.state === State.AWAITING_INPUT) {
+        machine.pushInputThenRun(1);
+    }
+    return machine.ram.currentOutput;
 }
 
 function part2(input: string): number {
-    let inputArr = input.split(",").map(parseInt);
-    return runElfCode(inputArr, 5).output;
+    let inputArr = input.split(",").map((string) => parseInt(string));
+    const machine = new Machine(inputArr);
+    machine.run();
+    while (machine.ram.state === State.AWAITING_INPUT) {
+        machine.pushInputThenRun(5);
+    }
+    return machine.ram.currentOutput;
 }
 
 export function solution() {

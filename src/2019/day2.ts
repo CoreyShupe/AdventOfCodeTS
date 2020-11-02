@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from "path";
-import {runElfCode} from "./elf_code";
+import {Machine} from "./elf/machine";
 
 function part1(input: string): number {
     return runProgram(input, 12, 2);
@@ -9,7 +9,7 @@ function part1(input: string): number {
 function part2(input: string): number {
     for(let noun = 0; noun < 100; noun++) {
         for(let verb = 0; verb < 100; verb++) {
-            let output = runProgram(input, noun, verb);
+            const output = runProgram(input, noun, verb);
             if (output === 19690720) {
                 return (100 * noun) + verb;
             }
@@ -19,11 +19,12 @@ function part2(input: string): number {
 }
 
 function runProgram(input: string, noun: number, verb: number): number {
-    let opArr = input.split(",").map(parseInt);
-    return runElfCode(opArr, 0, (ram) => {
-        ram[1] = noun;
-        ram[2] = verb;
-    }).ram[0];
+    const opArr = input.split(",").map((string) => parseInt(string));
+    opArr[1] = noun;
+    opArr[2] = verb;
+    const machine = new Machine(opArr);
+    machine.run();
+    return machine.ram.instructionSet[0];
 }
 
 export function solution() {
