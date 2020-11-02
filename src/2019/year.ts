@@ -10,12 +10,12 @@ import * as day9 from "./day9";
 
 export function display() {
     // console.log(`Day 1: ${day1.solution()}`);
-    // console.log(`Day 2: ${day2.solution()}`);
+    console.log(`Day 2: ${day2.solution()}`);
     // console.log(`Day 3: ${day3.solution()}`);
     // console.log(`Day 4: ${day4.solution()}`);
-    // console.log(`Day 5: ${day5.solution()}`);
+    console.log(`Day 5: ${day5.solution()}`);
     // console.log(`Day 6: ${day6.solution()}`);
-    // console.log(`Day 7: ${day7.solution()}`);
+    console.log(`Day 7: ${day7.solution()}`);
 
     console.log(`Day 9: ${day9.solution()}`);
 }

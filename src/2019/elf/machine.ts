@@ -40,8 +40,8 @@ class Instruction {
 export class Machine {
     ram: Ram;
 
-    constructor(input: Array<number>) {
-        this.ram = new Ram(input);
+    constructor(input: Array<number>, outputAcceptor: (value: number) => void) {
+        this.ram = new Ram(input, outputAcceptor);
     }
 
     pushInputThenRun(input: number) {
@@ -69,15 +69,16 @@ export class Ram {
     private instructionSet: Array<number>;
     private pointer: number;
     private inputAcceptorFunction: (input: number) => void;
-    currentOutput: number;
     private relativeOffset: number;
+    private outputAcceptor: (value: number) => void;
 
-    constructor(instructionSet: Array<number>) {
+    constructor(instructionSet: Array<number>, outputAcceptor: (value: number) => void) {
         this.state = State.RUNNING;
         this.instructionSet = Object.assign([], instructionSet);
         this.pointer = 0;
         this.inputAcceptorFunction = _ => {};
         this.relativeOffset = 0;
+        this.outputAcceptor = outputAcceptor;
     }
 
     getCurrentInstruction(): string {
@@ -155,8 +156,8 @@ export class Ram {
             this.state = State.AWAITING_INPUT;
         },
         4: (modes: Array<Mode>) => {
-            const testOutput = this.indexOf(1, modes);
-            this.currentOutput = testOutput;
+            const output = this.indexOf(1, modes);
+            this.outputAcceptor(output);
             this.incrementInstructionPointer(2);
         },
         5: (modes: Array<Mode>) => {

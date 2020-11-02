@@ -4,22 +4,32 @@ import {Machine, State} from "./elf/machine";
 
 function part1(input: string) {
     let inputArr = input.split(",").map((string) => parseInt(string));
-    const machine = new Machine(inputArr);
+    let output = 0;
+    const machine = new Machine(inputArr, incoming => {
+        if  (incoming !== 0) {
+            output = incoming;
+        }
+    });
     machine.run();
     while (machine.ram.state === State.AWAITING_INPUT) {
         machine.pushInputThenRun(1);
     }
-    return machine.ram.currentOutput;
+    return output;
 }
 
 function part2(input: string): number {
     let inputArr = input.split(",").map((string) => parseInt(string));
-    const machine = new Machine(inputArr);
+    let output = 0;
+    const machine = new Machine(inputArr, incoming => {
+        if  (incoming !== 0) {
+            output = incoming;
+        }
+    });
     machine.run();
     while (machine.ram.state === State.AWAITING_INPUT) {
         machine.pushInputThenRun(5);
     }
-    return machine.ram.currentOutput;
+    return output;
 }
 
 export function solution() {

@@ -45,15 +45,22 @@ function permute(vals: Array<number>): Array<Array<number>> {
 }
 
 function runPermutation(input: Array<number>, vals: Array<number>): number {
-    let machines = [new Machine(input), new Machine(input), new Machine(input), new Machine(input), new Machine(input)];
-    
     let currentInput = 0;
+    
+    const outputAcceptor = (incoming: number) => currentInput = incoming;
+    
+    let machines = [
+        new Machine(input, outputAcceptor),
+        new Machine(input, outputAcceptor),
+        new Machine(input, outputAcceptor),
+        new Machine(input, outputAcceptor),
+        new Machine(input, outputAcceptor)
+    ];
 
     for (let i = 0; i < 5; i++) {
         machines[i].run();
         machines[i].pushInputThenRun(vals[i]);
         machines[i].pushInputThenRun(currentInput);
-        currentInput = machines[i].ram.currentOutput;
         if (i == 4 && machines[i].ram.state === State.HALTED) {
             return currentInput;
         }
@@ -62,7 +69,6 @@ function runPermutation(input: Array<number>, vals: Array<number>): number {
     while (true) {
         for (let i = 0; i < 5; i++) {
             machines[i].pushInputThenRun(currentInput);
-            currentInput = machines[i].ram.currentOutput;
             if (i == 4 && machines[i].ram.state === State.HALTED) {
                 return currentInput;
             }

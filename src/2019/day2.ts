@@ -22,7 +22,7 @@ function runProgram(input: string, noun: number, verb: number): number {
     const opArr = input.split(",").map((string) => parseInt(string));
     opArr[1] = noun;
     opArr[2] = verb;
-    const machine = new Machine(opArr);
+    const machine = new Machine(opArr, _ => {});
     machine.run();
     return machine.ram.getRamValue(0);
 }

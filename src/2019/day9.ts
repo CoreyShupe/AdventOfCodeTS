@@ -4,18 +4,20 @@ import {Machine} from "./elf/machine";
 
 function part1(input: string): number {
     let elfInput = input.split(",").map((string) => parseInt(string));
-    let machine = new Machine(elfInput);
+    let output = 0;
+    let machine = new Machine(elfInput, incoming => output = incoming);
     machine.run();
     machine.pushInputThenRun(1);
-    return machine.ram.currentOutput;
+    return output;
 }
 
 function part2(input: string) {
     let elfInput = input.split(",").map((string) => parseInt(string));
-    let machine = new Machine(elfInput);
+    let output = 0;
+    let machine = new Machine(elfInput, incoming => output = incoming);
     machine.run();
     machine.pushInputThenRun(2);
-    return machine.ram.currentOutput;
+    return output;
 }
 
 export function solution() {
