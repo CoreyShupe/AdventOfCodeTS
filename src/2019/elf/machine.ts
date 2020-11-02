@@ -37,6 +37,7 @@ class Instruction {
     }
 }
 
+// the state machine, main abstract controller over the ram
 export class Machine {
     ram: Ram;
 
