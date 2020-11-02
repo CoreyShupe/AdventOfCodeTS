@@ -24,7 +24,7 @@ function runProgram(input: string, noun: number, verb: number): number {
     opArr[2] = verb;
     const machine = new Machine(opArr);
     machine.run();
-    return machine.ram.instructionSet[0];
+    return machine.ram.getRamValue(0);
 }
 
 export function solution() {

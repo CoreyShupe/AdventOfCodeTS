@@ -4,16 +4,26 @@ export enum State {
     AWAITING_INPUT,
 }
 
+enum Mode {
+    POSITION,
+    IMMEDIATE,
+    RELATIVE,
+}
+
 class Instruction {
     opCode: number;
-    modes: Array<boolean>;
+    modes: Array<Mode>;
 
     constructor(value: string) {
         this.opCode = this.parseOpCode(value);
         this.modes = [];
         for (let index = 0, i = value.length - 3; i >= 0; i--, index++) {
             if (value[i] === '1') {
-                this.modes[index] = true;
+                this.modes[index] = Mode.IMMEDIATE;
+            } else if (value[i] === '2') {
+                this.modes[index] = Mode.RELATIVE;
+            } else {
+                this.modes[index] = Mode.POSITION;
             }
         }
     }
@@ -56,16 +66,18 @@ export class Machine {
 
 export class Ram {
     state: State;
-    instructionSet: Array<number>;
+    private instructionSet: Array<number>;
     private pointer: number;
     private inputAcceptorFunction: (input: number) => void;
     currentOutput: number;
+    private relativeOffset: number;
 
     constructor(instructionSet: Array<number>) {
         this.state = State.RUNNING;
         this.instructionSet = Object.assign([], instructionSet);
         this.pointer = 0;
         this.inputAcceptorFunction = _ => {};
+        this.relativeOffset = 0;
     }
 
     getCurrentInstruction(): string {
@@ -82,12 +94,36 @@ export class Ram {
         this.inputAcceptorFunction = _ => {};
     }
 
-    private indexOf(index: number, modes: Array<boolean>): number {
-        return this.getValue(modes[index - 1], this.instructionSet[this.pointer + index]);
+    getRamValue(index: number): number {
+        return index >= this.instructionSet.length ? 0 : this.instructionSet[index];
+    }
+
+    private getPositionalArgument(index: number, modes: Array<Mode>): number {
+        return modes[index - 1] === Mode.RELATIVE ? (this.getRamValue(this.pointer + index) + this.relativeOffset) : this.getRamValue(this.pointer + index);
+    }
+
+    private indexOf(index: number, modes: Array<Mode>): number {
+        return this.getValue(modes[index - 1], this.getRamValue(this.pointer + index));
     }
 
     private getValue(mode: any, value: number): number {
-        return mode ? value : this.instructionSet[value];
+        switch (mode) {
+            case Mode.POSITION: {
+                return this.getRamValue(value);
+            }
+
+            case Mode.IMMEDIATE: {
+                return value;
+            }
+
+            case Mode.RELATIVE: {
+                return this.getRamValue(this.relativeOffset + value);
+            }
+
+            default: {
+                return this.getRamValue(value);
+            }
+        }
     }
 
     private incrementInstructionPointer(count: number) {
@@ -95,22 +131,22 @@ export class Ram {
     }
 
     private OP_CODES = {
-        1: (modes: Array<boolean>) => {
+        1: (modes: Array<Mode>) => {
             const left = this.indexOf(1, modes);
             const right = this.indexOf(2, modes);
-            const position = this.instructionSet[this.pointer + 3];
+            const position = this.getPositionalArgument(3, modes);
             this.instructionSet[position] = left + right;
             this.incrementInstructionPointer(4);
         },
-        2: (modes: Array<boolean>) => {
+        2: (modes: Array<Mode>) => {
             const left = this.indexOf(1, modes);
             const right = this.indexOf(2, modes);
-            const position = this.instructionSet[this.pointer + 3];
+            const position = this.getPositionalArgument(3, modes);
             this.instructionSet[position] = left * right;
             this.incrementInstructionPointer(4);
         },
-        3: (_: Array<boolean>) => {
-            const position = this.instructionSet[this.pointer + 1];
+        3: (modes: Array<Mode>) => {
+            const position = this.getPositionalArgument(1, modes);
             this.inputAcceptorFunction = (input: number) => {
                 this.instructionSet[position] = input;
                 this.incrementInstructionPointer(2);
@@ -118,12 +154,12 @@ export class Ram {
             };
             this.state = State.AWAITING_INPUT;
         },
-        4: (modes: Array<boolean>) => {
+        4: (modes: Array<Mode>) => {
             const testOutput = this.indexOf(1, modes);
             this.currentOutput = testOutput;
             this.incrementInstructionPointer(2);
         },
-        5: (modes: Array<boolean>) => {
+        5: (modes: Array<Mode>) => {
             const val1 = this.indexOf(1, modes);
             const val2 = this.indexOf(2, modes);
             if (val1 !== 0) {
@@ -132,7 +168,7 @@ export class Ram {
                 this.incrementInstructionPointer(3);
             }
         },
-        6: (modes: Array<boolean>) => {
+        6: (modes: Array<Mode>) => {
             const val1 = this.indexOf(1, modes);
             const val2 = this.indexOf(2, modes);
             if (val1 === 0) {
@@ -141,10 +177,10 @@ export class Ram {
                 this.incrementInstructionPointer(3);
             }
         },
-        7: (modes: Array<boolean>) => {
+        7: (modes: Array<Mode>) => {
             const val1 = this.indexOf(1, modes);
             const val2 = this.indexOf(2, modes);
-            const position = this.instructionSet[this.pointer + 3];
+            const position = this.getPositionalArgument(3, modes);
             if (val1 < val2) {
                 this.instructionSet[position] = 1;
             } else {
@@ -152,16 +188,21 @@ export class Ram {
             }
             this.incrementInstructionPointer(4);
         },
-        8: (modes: Array<boolean>) => {
+        8: (modes: Array<Mode>) => {
             const val1 = this.indexOf(1, modes);
             const val2 = this.indexOf(2, modes);
-            const position = this.instructionSet[this.pointer + 3];
+            const position = this.getPositionalArgument(3, modes);
             if (val1 === val2) {
                 this.instructionSet[position] = 1;
             } else {
                 this.instructionSet[position] = 0;
             }
             this.incrementInstructionPointer(4);
+        },
+        9: (modes: Array<Mode>) => {
+            const value = this.indexOf(1, modes);
+            this.relativeOffset += value;
+            this.incrementInstructionPointer(2);
         },
         99: (_) => {
             this.state = State.HALTED;
