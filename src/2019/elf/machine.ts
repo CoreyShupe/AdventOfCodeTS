@@ -70,15 +70,15 @@ export class Ram {
     private pointer: number;
     private inputAcceptorFunction: (input: number) => void;
     private relativeOffset: number;
-    private outputAcceptor: (value: number) => void;
+    private stdout: (value: number) => void;
 
-    constructor(instructionSet: Array<number>, outputAcceptor: (value: number) => void) {
+    constructor(instructionSet: Array<number>, stdout: (value: number) => void) {
         this.state = State.RUNNING;
         this.instructionSet = Object.assign([], instructionSet);
         this.pointer = 0;
         this.inputAcceptorFunction = _ => {};
         this.relativeOffset = 0;
-        this.outputAcceptor = outputAcceptor;
+        this.stdout = stdout;
     }
 
     getCurrentInstruction(): string {
@@ -157,7 +157,7 @@ export class Ram {
         },
         4: (modes: Array<Mode>) => {
             const output = this.indexOf(1, modes);
-            this.outputAcceptor(output);
+            this.stdout(output);
             this.incrementInstructionPointer(2);
         },
         5: (modes: Array<Mode>) => {
